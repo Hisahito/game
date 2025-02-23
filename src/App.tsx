@@ -1,7 +1,7 @@
 // App.tsx
 import React from 'react';
 // import PixiCanvas from './components/PixiCanvas';
-import PixiCanvas from './components/PixiCanvas';
+// import PixiCanvas from './components/PixiCanvas';
 import MapCanvasIsometric from './components/PhaserCanvas';
 
 /**

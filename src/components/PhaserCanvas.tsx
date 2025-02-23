@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 
 import castilloImg from '../assets/castillo.png';
 import cofreImg from '../assets/cofre.png';
-import torreImg from '../assets/torre1.png';
+// import torreImg from '../assets/torre1.png';
 import pastoImg from '../assets/grass.png';
 import aguaImg from '../assets/water.png';
 import bosqueImg from '../assets/bosque.png';
@@ -153,7 +153,7 @@ const MapCanvasIsometric: React.FC = () => {
             this.tooltip = this.add.container(isoX + 50, isoY - 40);
             const bg = this.add.graphics();
             bg.fillStyle(0x000000, 0.8);
-            bg.fillRoundedRect(0, 0, 140, 60, 10);
+            bg.fillRoundedRect(0, 0, 200, 60, 10);
 
             const text = this.add.text(10, 10, `ID: ${block.blockId}\nSupply: ${block.supplyBlock}`, {
               fontSize: '12px',
@@ -215,9 +215,3 @@ const MapCanvasIsometric: React.FC = () => {
 };
 
 export default MapCanvasIsometric;
-
-
-
-
-
-
