@@ -12,8 +12,8 @@ const App: React.FC = () => {
     <div className="App">
       {/* Encabezado de la aplicación */}
       <header className="App-header">
-        <h1>Bienvenido a Conquest The Block</h1>
-        <p>Juego web desarrollado con React/TypeScript/PixiJS</p>
+        <h1>Welcome to CTB</h1>
+        <p> CryptoWebGame build in React/TypeScript/PixiJS</p>
       </header>
       <PixiCanvas />
     </div>
