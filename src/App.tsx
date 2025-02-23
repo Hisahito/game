@@ -2,6 +2,7 @@
 import React from 'react';
 // import PixiCanvas from './components/PixiCanvas';
 import PixiCanvas from './components/PixiCanvas';
+import MapCanvasIsometric from './components/PhaserCanvas';
 
 /**
  * Componente principal de la aplicación.
@@ -15,7 +16,8 @@ const App: React.FC = () => {
         <h1>Bienvenido a Conquest The Block</h1>
         <p>Juego web desarrollado con React/TypeScript/PixiJS</p>
       </header>
-      <PixiCanvas />
+      
+      <MapCanvasIsometric/>
     </div>
   );
 };

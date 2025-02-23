@@ -33,8 +33,8 @@ const MapCanvasIsometric: React.FC = () => {
   const [viewportOrigin, setViewportOrigin] = useState<{ x: number; y: number } | null>(null);
 
   // Tamaño en bloques del viewport
-  const viewportBlockCountX = 10;
-  const viewportBlockCountY = 10;
+  const viewportBlockCountX = 20;
+  const viewportBlockCountY = 20;
   // Delta para mover el viewport al hacer clic en un borde
   const viewportShiftDelta = 3;
 
@@ -68,14 +68,14 @@ const MapCanvasIsometric: React.FC = () => {
     if (blockDetails.length === 0 || viewportOrigin === null) return;
 
     // Parámetros base para la vista isométrica.
-    const tileWidth = 64;
-    const tileHeight = 32;
+    const tileWidth = 128;
+    const tileHeight = 64;
 
     // Factores para acercar (o superponer) los bloques horizontal y verticalmente
     // Ajusta estos valores para pegar más los bloques en la dirección horizontal
     // y mantener la proporción vertical isométrica.
-    const horizontalFactor = 0.4;  // Menor a 0.5 para reducir separación lateral
-    const verticalFactor = 0.4;    // 0.5 es típico para isométrico 2:1
+    const horizontalFactor = 0.3;  // Menor a 0.5 para reducir separación lateral
+    const verticalFactor = 0.3;    // 0.5 es típico para isométrico 2:1
 
     // Calcular los límites del viewport (en coordenadas de grid)
     const visibleMinX = viewportOrigin.x;
