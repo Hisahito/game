@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",              // Permite usar las últimas características de ECMAScript.
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],  // Incluye definiciones para el navegador y APIs modernas.
+    "allowJs": false,                // Se recomienda usar solo TypeScript para evitar inconsistencias.
+    "skipLibCheck": true,            // Omite la comprobación de tipos en librerías para agilizar la compilación.
+    "esModuleInterop": true,         // Facilita la interoperabilidad con módulos CommonJS.
+    "allowSyntheticDefaultImports": true,  // Permite importaciones sin 'default export' explícito.
+    "strict": true,                  // Activa las comprobaciones estrictas de tipos.
+    "forceConsistentCasingInFileNames": true, // Garantiza el uso consistente de mayúsculas/minúsculas en nombres de archivo.
+    "noFallthroughCasesInSwitch": true, // Evita errores por omisión de 'break' en switch.
+    "module": "ESNext",              // Usa módulos ES para compatibilidad con bundlers modernos.
+    "moduleResolution": "Node",      // Utiliza el mecanismo de resolución de módulos de Node.
+    "resolveJsonModule": true,       // Permite importar archivos JSON.
+    "isolatedModules": true,         // Asegura que cada archivo se pueda transpilar de forma independiente.
+    "noEmit": true,                  // No genera archivos JavaScript directamente, útil cuando usas un bundler.
+    "jsx": "react-jsx"               // Emplea la nueva transformación JSX de React 17+.
+  },
+  "include": ["src"],              // Se compilarán los archivos ubicados en la carpeta src.
+  "exclude": ["node_modules"]      // Excluye la carpeta node_modules.
+}
