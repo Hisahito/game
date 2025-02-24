@@ -3,11 +3,12 @@ import Phaser from 'phaser';
 
 import castilloImg from '../assets/castillo.png';
 import cofreImg from '../assets/cofre.png';
-// import torreImg from '../assets/torre1.png';
 import pastoImg from '../assets/grass.png';
 import aguaImg from '../assets/water.png';
 import bosqueImg from '../assets/bosque.png';
 import piedraImg from '../assets/piedra1.png';
+import woodsImg from '../assets/blockWoods.png';
+import soldierIdle from '../assets/Soldier-Idle.png'; // Sprite del personaje
 
 interface Block {
   blockId: number;
@@ -17,6 +18,12 @@ interface Block {
   supplyBlock: number;
   afinity: number[];
   only: number;
+}
+
+// El JSON de personajes ahora solo tiene characterId y blockId.
+interface Character {
+  characterId: number;
+  blockId: number;
 }
 
 const tileWidth = 64;
@@ -31,6 +38,9 @@ const MapCanvasIsometric: React.FC = () => {
 
     class IsoScene extends Phaser.Scene {
       private blockData: Block[] = [];
+      private charactersData: Character[] = [];
+      // Mapa para asociar cada blockId con su sprite de personaje
+      private charactersMap: Map<number, Phaser.GameObjects.Sprite> = new Map();
       private camera!: Phaser.Cameras.Scene2D.Camera;
       private selectedBlock: Phaser.GameObjects.Sprite | null = null;
       private tooltip: Phaser.GameObjects.Container | null = null;
@@ -44,18 +54,32 @@ const MapCanvasIsometric: React.FC = () => {
         this.load.image('agua', aguaImg);
         this.load.image('bosque', bosqueImg);
         this.load.image('piedra', piedraImg);
+        this.load.image('woods', woodsImg);
 
-        // Cargar el mapa JSON
+        // Cargar el JSON del mapa y de personajes
         this.load.json('world', 'World.json');
+        this.load.json('characters', 'Characters.json');
+
+        // Cargar el sprite sheet del personaje (6 frames de 100x100)
+        this.load.spritesheet('soldierIdle', soldierIdle, { frameWidth: 100, frameHeight: 100 });
       }
 
       create() {
         this.blockData = this.cache.json.get('world');
+        this.charactersData = this.cache.json.get('characters');
 
         this.camera = this.cameras.main;
         this.camera.setZoom(1);
         this.camera.setBounds(-3000, -3000, 6000, 6000);
         this.camera.centerOn(0, 0);
+
+        // Crear animación idle para el personaje
+        this.anims.create({
+          key: 'idle',
+          frames: this.anims.generateFrameNumbers('soldierIdle', { start: 0, end: 5 }),
+          frameRate: 6,
+          repeat: -1
+        });
 
         // Movimiento con el mouse (drag)
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
@@ -65,7 +89,7 @@ const MapCanvasIsometric: React.FC = () => {
           }
         });
 
-        // 🎯 Capturar eventos de la rueda del mouse (zoom)
+        // Evento de zoom con la rueda del mouse
         const wheelHandler = (event: WheelEvent) => {
           if (event.deltaY > 0) {
             this.camera.zoom = Math.max(0.5, this.camera.zoom - 0.1);
@@ -73,26 +97,24 @@ const MapCanvasIsometric: React.FC = () => {
             this.camera.zoom = Math.min(2, this.camera.zoom + 0.1);
           }
         };
-
         window.addEventListener("wheel", wheelHandler);
-
-        // Remover evento cuando la escena se destruye
         this.events.on("destroy", () => {
           window.removeEventListener("wheel", wheelHandler);
         });
 
         // Crear contorno en forma de rombo
         this.highlight = this.add.graphics();
-        this.highlight.lineStyle(3, 0xffff00); // Contorno amarillo
+        this.highlight.lineStyle(3, 0xffff00);
         this.highlight.visible = false;
         this.add.existing(this.highlight);
 
+        // Renderizar bloques y personajes
         this.renderBlocks();
+        this.renderCharacters();
       }
 
       renderBlocks() {
         const container = this.add.container();
-
         const spacingFactorX = 0.3;
         const spacingFactorY = 0.3;
 
@@ -107,102 +129,141 @@ const MapCanvasIsometric: React.FC = () => {
           if (category === 'Medium') texture = 'cofre';
           if (only === 1) texture = 'agua';
           if (only === 3) texture = 'piedra';
-          if (only === 6) texture = 'bosque';
+          if (only === 6) texture = 'woods';
 
           const sprite = this.add.sprite(isoX, isoY, texture).setOrigin(0.5, 1);
+          // Guardamos el blockId en el sprite para usarlo después
+          sprite.setData("blockId", block.blockId);
 
-          // Definir área interactiva en forma de rombo para detectar clicks con precisión
-          // Calculamos el hitArea en función del tamaño del tile y del sprite
+          // Definir área interactiva en forma de rombo para detectar clicks
           const hitArea = new Phaser.Geom.Polygon([
-            new Phaser.Geom.Point(sprite.width / 2, sprite.height - tileHeight),                  // Vértice superior
-            new Phaser.Geom.Point(sprite.width / 2 + tileWidth / 2, sprite.height - tileHeight / 2),  // Vértice derecho
-            new Phaser.Geom.Point(sprite.width / 2, sprite.height),                                 // Vértice inferior
-            new Phaser.Geom.Point(sprite.width / 2 - tileWidth / 2, sprite.height - tileHeight / 2)   // Vértice izquierdo
+            new Phaser.Geom.Point(sprite.width / 2, sprite.height - tileHeight),
+            new Phaser.Geom.Point(sprite.width / 2 + tileWidth / 2, sprite.height - tileHeight / 2),
+            new Phaser.Geom.Point(sprite.width / 2, sprite.height),
+            new Phaser.Geom.Point(sprite.width / 2 - tileWidth / 2, sprite.height - tileHeight / 2)
           ]);
           sprite.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
 
-          // 🟢 Evento de clic en el bloque
           sprite.on('pointerdown', () => {
-            // Evitar que el mismo bloque siga subiendo
+            // Si ya está seleccionado, no hacemos nada
             if (this.selectedBlock === sprite) return;
 
-            // Si hay un bloque seleccionado, volverlo a su posición original
+            // Si hay un bloque previamente seleccionado, lo regresamos a su posición original junto con su personaje
             if (this.selectedBlock) {
               this.tweens.add({
                 targets: this.selectedBlock,
                 y: this.selectedBlock.y + 10,
                 duration: 200,
-                ease: 'Power1',
+                ease: 'Power1'
               });
+              const prevBlockId = this.selectedBlock.getData("blockId");
+              const prevSoldier = this.charactersMap.get(prevBlockId);
+              if (prevSoldier) {
+                this.tweens.add({
+                  targets: prevSoldier,
+                  y: prevSoldier.y + 10,
+                  duration: 200,
+                  ease: 'Power1'
+                });
+              }
             }
 
-            // Hacer que el bloque seleccionado "salte"
+            // Animar el bloque clickeado: se sube 10px
             this.tweens.add({
               targets: sprite,
               y: sprite.y - 10,
               duration: 200,
-              ease: 'Power1',
+              ease: 'Power1'
             });
+            // Animar también el sprite del personaje asociado, si existe
+            const blockId = sprite.getData("blockId");
+            const soldier = this.charactersMap.get(blockId);
+            if (soldier) {
+              this.tweens.add({
+                targets: soldier,
+                y: soldier.y - 10,
+                duration: 200,
+                ease: 'Power1'
+              });
+            }
 
             this.selectedBlock = sprite;
 
-            // Si ya existe el tooltip, destruirlo antes de crear uno nuevo
+            // Mostrar tooltip (puedes ajustar su posición según convenga)
             if (this.tooltip) this.tooltip.destroy();
-
-            // Crear el tooltip
+            const isoX = sprite.x;
+            const isoY = sprite.y;
             this.tooltip = this.add.container(isoX + 50, isoY - 40);
             const bg = this.add.graphics();
             bg.fillStyle(0x000000, 0.8);
             bg.fillRoundedRect(0, 0, 200, 60, 10);
-
-            const text = this.add.text(10, 10, `ID: ${block.blockId}\nSupply: ${block.supplyBlock}`, {
+            const text = this.add.text(10, 10, `ID: ${sprite.getData("blockId")}\nSupply: ${block.supplyBlock}`, {
               fontSize: '12px',
               color: '#ffffff',
             });
-
             this.tooltip.add([bg, text]);
             this.add.existing(this.tooltip);
           });
 
-
-
-
           sprite.on('pointerover', () => {
-            sprite.setTint(0xffff00); // Aplica un tinte amarillo
+            sprite.setTint(0xffff00);
           });
-          
           sprite.on('pointerout', () => {
-            sprite.clearTint(); // Quita el tinte al salir el mouse
+            sprite.clearTint();
           });
-          
 
-          
-
-          
-          
           container.add(sprite);
         });
+      }
 
-        
+      renderCharacters() {
+        const spacingFactorX = 0.3;
+        const spacingFactorY = 0.3;
+
+        // Para cada personaje, se busca el bloque correspondiente y se añade el sprite del personaje
+        this.charactersData.forEach((character: Character) => {
+          const block = this.blockData.find(b => b.blockId === character.blockId);
+          if (!block) return; // Si no se encuentra el bloque, se omite
+
+          // Calcula la posición isométrica del bloque
+          const isoX = (block.x - block.y) * (tileWidth * spacingFactorX);
+          const isoY = (block.x + block.y) * (tileHeight * spacingFactorY);
+
+          // Se añade un ajuste en Y (por ejemplo, +10) para posicionar correctamente el personaje
+          const posX = isoX;
+          const posY = isoY + 20;
+
+          // Crear el sprite del personaje y reproducir la animación idle
+          const soldier = this.add.sprite(posX, posY, 'soldierIdle').setOrigin(0.5, 1);
+          soldier.play('idle');
+          soldier.setDepth(posY);
+
+          // Guardar el sprite en el mapa, usando blockId como clave
+          this.charactersMap.set(block.blockId, soldier);
+        });
       }
     }
 
     const phaserGame = new Phaser.Game({
-        type: Phaser.AUTO,
-        width: 1200,
-        height: 800,
-        backgroundColor: '#87CEEB',
-        parent: gameContainerRef.current!,
-        scene: IsoScene,
-        scale: {
-          mode: Phaser.Scale.FIT, // Ajusta el tamaño del juego para que se adapte al contenedor
-          autoCenter: Phaser.Scale.CENTER_BOTH // Centra el canvas tanto horizontal como verticalmente
-        },
-        physics: {
-          default: 'arcade',
-        },
-      });
-      
+      type: Phaser.AUTO,
+      width: 1200,
+      height: 800,
+      backgroundColor: '#87CEEB',
+      parent: gameContainerRef.current!,
+      scene: IsoScene,
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        
+      },
+      render: {
+        antialias: true,
+        pixelArt: true,
+      },
+      physics: {
+        default: 'arcade',
+      },
+    });
 
     setGame(phaserGame);
 
@@ -215,3 +276,5 @@ const MapCanvasIsometric: React.FC = () => {
 };
 
 export default MapCanvasIsometric;
+
+
