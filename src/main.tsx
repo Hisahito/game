@@ -6,7 +6,7 @@ import App from './App';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider,http } from 'wagmi';
-import { mainnet , arbitrumNova} from 'wagmi/chains'
+import { mainnet , arbitrumNova,bscTestnet} from 'wagmi/chains'
   import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
   import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css';
@@ -24,12 +24,13 @@ const config = getDefaultConfig({
 
   projectId: 'Conquest',
 
-  chains: [mainnet,arbitrumNova],
+  chains: [mainnet,arbitrumNova,bscTestnet],
 
   transports: {
 
     [mainnet.id]: http(),
     [arbitrumNova.id]: http(),
+    [bscTestnet.id]: http(),
 
   },
 
