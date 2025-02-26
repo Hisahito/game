@@ -9,6 +9,7 @@ import bosqueImg from '../assets/bosque.png';
 import piedraImg from '../assets/piedra1.png';
 import woodsImg from '../assets/blockWoods.png';
 import soldierIdle from '../assets/Soldier-Idle.png'; // Sprite del personaje
+import rockImg from '../assets/BlockRock1.png';
 
 interface Block {
   blockId: number;
@@ -48,12 +49,12 @@ const MapCanvasIsometric: React.FC = () => {
 
       preload() {
         this.load.image('castillo', castilloImg);
-        this.load.image('cofre', cofreImg);
+        this.load.image('cofre', bosqueImg);
         this.load.image('torre', pastoImg);
         this.load.image('pasto', pastoImg);
         this.load.image('agua', aguaImg);
-        this.load.image('bosque', bosqueImg);
-        this.load.image('piedra', piedraImg);
+        this.load.image('bosque', woodsImg);
+        this.load.image('piedra', rockImg);
         this.load.image('woods', woodsImg);
 
         // Cargar el JSON del mapa y de personajes
@@ -126,7 +127,7 @@ const MapCanvasIsometric: React.FC = () => {
           let texture = 'pasto';
           if (category === 'Legendary') texture = 'castillo';
           if (category === 'High') texture = 'torre';
-          if (category === 'Medium') texture = 'cofre';
+          if (category === 'Medium') texture = 'woods';
           if (only === 1) texture = 'agua';
           if (only === 3) texture = 'piedra';
           if (only === 6) texture = 'woods';

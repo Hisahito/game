@@ -7,6 +7,8 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { CreateCharacter } from './components/CreateCharacter';
 import CharacterEventListener from './components/WebsocketCharacter';
 import HistoricalCharacterEvents from './components/Character';
+import CharacterAlchemyEventListener from './components/AlchemySocket';
+import TransferEventsListener from './components/AlchemySocket';
 
 /**
  * Componente principal de la aplicación.
@@ -22,7 +24,8 @@ const App: React.FC = () => {
       </header>
       <ConnectButton />
       <CreateCharacter/>
-      <CharacterEventListener/>
+      <TransferEventsListener/>
+      
       <HistoricalCharacterEvents/>
       <MapCanvasIsometric/>
     </div>
