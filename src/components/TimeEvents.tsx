@@ -5,7 +5,10 @@ import { parseAbi, parseEventLogs } from 'viem'
 // Definimos el ABI para ambos eventos
 const eventAbis = parseAbi([
   'event BlockConquestStarted(uint256 indexed blockId, uint256 indexed characterId, uint256 conquestEndBlock, uint256 blocksRemaining)',
-  'event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)'
+  'event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)',
+  'event BlockChallenged(uint256 indexed blockId,uint256 indexed attackerId,uint256 previousOwner,uint256 conquestEndBlock,uint256 blocksRemaining)',
+  'event BlockDefended(uint256 indexed blockId,uint256 indexed characterId)',
+  'event BlockVasallo(uint256 indexed blockId,uint256 indexed vasalId,uint256 originalOwner)'
 ])
 
 const TimeEvents = () => {
