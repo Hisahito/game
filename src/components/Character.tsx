@@ -1,30 +1,21 @@
-import { useEffect, useState,useMemo } from 'react'
-import { publicClient } from '../config/client'
-import { parseAbi,parseAbiItem, decodeEventLog } from 'viem'
+// src/components/character.tsx
+import { useEffect, useState } from 'react';
+import { publicClient } from '../config/client';
+import { parseAbi, parseAbiItem, decodeEventLog } from 'viem';
 
 interface CharacterCreatedEvent {
-  characterId: string
-  affinity: string
-  velocity: string
-  isNew?: boolean
+  characterId: string;
+  affinity: string;
+  velocity: string;
+  isNew?: boolean;
 }
 
-
-// Definimos el evento usando parseAbiItem
-const eventItem = parseAbi(['event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)'])
-
-  const eventItem2= parseAbiItem(
-    'event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)'
-  )
+const eventItem = parseAbi(['event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)']);
+const eventItem2 = parseAbiItem('event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)');
 
 const HistoricalCharacterEvents = () => {
-  const [events, setEvents] = useState<CharacterCreatedEvent[]>([])
+  const [events, setEvents] = useState<CharacterCreatedEvent[]>([]);
 
-  
-
-  
-
-  // Carga histórica de eventos
   useEffect(() => {
     async function fetchEvents() {
       try {
@@ -33,32 +24,29 @@ const HistoricalCharacterEvents = () => {
           events: eventItem,
           fromBlock: 48628746n,
           toBlock: 'latest',
-        })
-console.log(logs);
-console.log(eventItem);
+        });
+        console.log(logs);
+        console.log(eventItem);
         const eventsData: CharacterCreatedEvent[] = logs.map((log) => {
           const decoded = decodeEventLog({
             abi: eventItem,
             data: log.data,
             topics: log.topics,
-            
-          })
+          });
           return {
             characterId: decoded.args.characterId.toString(),
             affinity: decoded.args.affinity.toString(),
             velocity: decoded.args.velocity.toString(),
-          }
-        })
-
-        setEvents(eventsData)
+          };
+        });
+        setEvents(eventsData);
       } catch (error) {
-        console.error('Error al obtener los eventos históricos:', error)
+        console.error('Error al obtener los eventos históricos:', error);
       }
     }
-    fetchEvents()
-  }, [eventItem])
+    fetchEvents();
+  }, [eventItem]);
 
-  // Suscripción a nuevos eventos
   useEffect(() => {
     const unwatch = publicClient.watchEvent({
       address: '0x322AE0BEE905572DE3d1F67E2A560c19fbc76994',
@@ -69,54 +57,53 @@ console.log(eventItem);
             abi: eventItem,
             data: log.data,
             topics: log.topics,
-          })
+          });
           const newEvent: CharacterCreatedEvent = {
             characterId: decoded.args.characterId.toString(),
             affinity: decoded.args.affinity.toString(),
             velocity: decoded.args.velocity.toString(),
             isNew: true,
-          }
-          setEvents((prev) => [...prev, newEvent])
-        })
+          };
+          setEvents((prev) => [...prev, newEvent]);
+        });
       },
-    })
+    });
 
     return () => {
-      unwatch()
-    }
-  }, [eventItem2])
+      unwatch();
+    };
+  }, [eventItem2]);
 
   return (
     <div>
       <h2>Histórico de CharacterCreated</h2>
-      {events.map((event, index) => (
-        <div
-          key={index}
-          style={{
-            border: event.isNew ? '2px solid red' : '1px solid #ccc',
-            margin: '1rem',
-            padding: '1rem',
-            borderRadius: '8px',
-          }}
-        >
-          <p>
-            <strong>ID del Personaje:</strong> {event.characterId}
-          </p>
-          <p>
-            <strong>Affinity:</strong> {event.affinity}
-          </p>
-          <p>
-            <strong>Velocity:</strong> {event.velocity}
-          </p>
-        </div>
-      ))}
+      {/* Contenedor para disponer los eventos en fila con scroll horizontal */}
+      <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto' }}>
+        {events.map((event, index) => (
+          <div
+            key={index}
+            style={{
+              border: event.isNew ? '2px solid red' : '1px solid #ccc',
+              margin: '1rem 0',
+              padding: '1rem',
+              borderRadius: '8px',
+              flex: '0 0 auto'
+            }}
+          >
+            <p>
+              <strong>ID del Personaje:</strong> {event.characterId}
+            </p>
+            <p>
+              <strong>Affinity:</strong> {event.affinity}
+            </p>
+            <p>
+              <strong>Velocity:</strong> {event.velocity}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default HistoricalCharacterEvents
-
-
-
-
-
+export default HistoricalCharacterEvents;
