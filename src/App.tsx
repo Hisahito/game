@@ -1,38 +1,49 @@
-// App.tsx
+// src/App.tsx
 import React from 'react';
-// import PixiCanvas from './components/PixiCanvas';
-// import PixiCanvas from './components/PixiCanvas';
 import MapCanvasIsometric from './components/PhaserCanvas';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { CreateCharacter } from './components/CreateCharacter';
-import CharacterEventListener from './components/WebsocketCharacter';
 import HistoricalCharacterEvents from './components/Character';
+import CharacterEventListener from './components/WebsocketCharacter';
 import CharacterAlchemyEventListener from './components/AlchemySocket';
 import TransferEventsListener from './components/AlchemySocket';
 import MapCanvas2 from './components/World2';
 import TimeEvents from './components/TimeEvents';
 
-/**
- * Componente principal de la aplicación.
- * Aquí se pueden incluir rutas, estado global y otros componentes.
- */
 const App: React.FC = () => {
   return (
     <div className="App">
-      {/* Encabezado de la aplicación */}
-      <header className="App-header">
-        <h1>Bienvenido a Conquest The Block</h1>
-        <p>Juego web desarrollado con React/TypeScript/Phaser</p>
+      <header 
+        className="App-header"
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',    // Importante para alinear arriba en vez de center
+          justifyContent: 'space-between',
+          gap: '1rem',
+        }}
+      >
+        {/* Contenedor de la izquierda (columna) */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1>Bienvenido a Conquest The Block</h1>
+          <p>Juego web desarrollado con React/TypeScript/Phaser</p>
+          {/* Ahora el ConnectButton se muestra debajo del <p> */}
+          <ConnectButton />
+        </div>
+
+        {/* Contenedor de la derecha (scroll horizontal para eventos) */}
+        <div style={{ 
+          overflowX: 'auto', 
+          whiteSpace: 'nowrap', 
+          maxWidth: '50%' 
+        }}>
+          <HistoricalCharacterEvents />
+        </div>
       </header>
-      <ConnectButton />
       <CreateCharacter/>
       <TimeEvents/>
-      <HistoricalCharacterEvents/>
 
-
-      
-      
-      <MapCanvas2/>
+      {/* Resto de componentes debajo del header */}
+      <MapCanvas2 />
     </div>
   );
 };
