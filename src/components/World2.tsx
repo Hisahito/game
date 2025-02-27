@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import abi from '../abi/TimeMachine.json';
 
 import castilloImg from '../assets/castillo.png';
 import cofreImg from '../assets/cofre.png';
@@ -21,7 +23,6 @@ interface Block {
   only: number;
 }
 
-// El JSON de personajes ahora solo tiene characterId y blockId.
 interface Character {
   characterId: number;
   blockId: number;
@@ -33,6 +34,44 @@ const tileHeight = 32;
 const MapCanvas2: React.FC = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [game, setGame] = useState<Phaser.Game | null>(null);
+
+  // Estados para la interacción del formulario
+  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+  const [characterId, setCharacterId] = useState<string>('');
+  const [defender, setDefender] = useState<boolean>(false);
+  const [showForm, setShowForm] = useState<boolean>(false);
+
+  // Hooks de wagmi para ejecutar la transacción
+  const { data: hash, writeContract } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  // Función submit que se dispara al enviar el formulario
+  async function submit(e: React.FormEvent<HTMLFormElement>) { 
+    e.preventDefault();
+    if (!selectedBlockId) return;
+    writeContract({
+      address: '0x322AE0BEE905572DE3d1F67E2A560c19fbc76994',
+      abi,
+      functionName: 'conquest',
+      args: [BigInt(characterId), BigInt(selectedBlockId), defender],
+    });
+    setShowForm(false);
+  } 
+
+  // Escucha el CustomEvent que dispara Phaser al seleccionar un bloque
+  useEffect(() => {
+    const handleBlockSelected = (e: CustomEvent<{ blockId: number }>) => {
+      setSelectedBlockId(e.detail.blockId);
+      setShowForm(true);
+    }
+    window.addEventListener('blockSelected', handleBlockSelected as EventListener);
+    return () => {
+      window.removeEventListener('blockSelected', handleBlockSelected as EventListener);
+    }
+  }, []);
+
+
+  
 
   useEffect(() => {
     if (!gameContainerRef.current) return;
@@ -152,7 +191,7 @@ const MapCanvas2: React.FC = () => {
             // Si ya está seleccionado, no hacemos nada
             if (this.selectedBlock === sprite) return;
 
-            // Si hay un bloque previamente seleccionado, lo regresamos a su posición original junto con su personaje
+            // Si hay un bloque previamente seleccionado, regresamos su posición original y la del personaje asociado
             if (this.selectedBlock) {
               this.tweens.add({
                 targets: this.selectedBlock,
@@ -190,10 +229,12 @@ const MapCanvas2: React.FC = () => {
                 ease: 'Power1'
               });
             }
-
             this.selectedBlock = sprite;
 
-            // Mostrar tooltip (puedes ajustar su posición según convenga)
+            // Disparar un CustomEvent para notificar a React del bloque seleccionado
+            window.dispatchEvent(new CustomEvent('blockSelected', { detail: { blockId } }));
+
+            // Mostrar tooltip
             if (this.tooltip) this.tooltip.destroy();
             const isoX = sprite.x;
             const isoY = sprite.y;
@@ -227,22 +268,17 @@ const MapCanvas2: React.FC = () => {
         // Para cada personaje, se busca el bloque correspondiente y se añade el sprite del personaje
         this.charactersData.forEach((character: Character) => {
           const block = this.blockData.find(b => b.blockId === character.blockId);
-          if (!block) return; // Si no se encuentra el bloque, se omite
+          if (!block) return;
 
-          // Calcula la posición isométrica del bloque
           const isoX = (block.x - block.y) * (tileWidth * spacingFactorX);
           const isoY = (block.x + block.y) * (tileHeight * spacingFactorY);
-
-          // Se añade un ajuste en Y (por ejemplo, +10) para posicionar correctamente el personaje
           const posX = isoX;
           const posY = isoY + 20;
 
-          // Crear el sprite del personaje y reproducir la animación idle
           const soldier = this.add.sprite(posX, posY, 'soldierIdle').setOrigin(0.5, 1);
           soldier.play('idle');
           soldier.setDepth(posY);
 
-          // Guardar el sprite en el mapa, usando blockId como clave
           this.charactersMap.set(block.blockId, soldier);
         });
       }
@@ -258,7 +294,6 @@ const MapCanvas2: React.FC = () => {
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        
       },
       render: {
         antialias: true,
@@ -276,7 +311,91 @@ const MapCanvas2: React.FC = () => {
     };
   }, []);
 
-  return <div ref={gameContainerRef} />;
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={gameContainerRef} />
+      {showForm && (
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          left: '50%',
+          transform: 'translate(-50%, -20%)',
+          background: '#fff',
+          padding: '20px',
+          border: '1px solid #000',
+          borderRadius: '8px',
+          zIndex: 10
+        }}>
+          {/* Botón para cerrar el formulario */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="button" onClick={() => { 
+              console.log("Cerrando formulario");
+              setShowForm(false); 
+            }}>X</button>
+          </div>
+          <form onSubmit={submit}>
+            <div>
+              <label><strong>Block ID:</strong> {selectedBlockId}</label>
+            </div>
+            <div>
+              <label>
+                Character ID:
+                <input
+                  type="number"
+                  name="characterId"
+                  value={characterId}
+                  onChange={(e) => setCharacterId(e.target.value)}
+                  required
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Defender:
+                <input
+                  type="checkbox"
+                  name="defender"
+                  checked={defender}
+                  onChange={(e) => setDefender(e.target.checked)}
+                />
+              </label>
+            </div>
+            <button type="submit">Enviar</button>
+          </form>
+        </div>
+      )}
+      {isConfirming && (
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#000',
+          color: '#fff',
+          padding: '10px',
+          borderRadius: '5px',
+          zIndex: 10
+        }}>
+          Esperando transacción...
+        </div>
+      )}
+      {isConfirmed && (
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'green',
+          color: '#fff',
+          padding: '10px',
+          borderRadius: '5px',
+          zIndex: 10
+        }}>
+          Transacción confirmada!
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default MapCanvas2;

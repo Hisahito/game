@@ -10,6 +10,7 @@ import HistoricalCharacterEvents from './components/Character';
 import CharacterAlchemyEventListener from './components/AlchemySocket';
 import TransferEventsListener from './components/AlchemySocket';
 import MapCanvas2 from './components/World2';
+import TimeEvents from './components/TimeEvents';
 
 /**
  * Componente principal de la aplicación.
@@ -25,6 +26,7 @@ const App: React.FC = () => {
       </header>
       <ConnectButton />
       <CreateCharacter/>
+      <TimeEvents/>
       <HistoricalCharacterEvents/>
 
 

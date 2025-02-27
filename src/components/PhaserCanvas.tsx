@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 
+
+import { 
+    type BaseError,
+    useWaitForTransactionReceipt, 
+    useWriteContract 
+  } from 'wagmi'
+  import  abi  from '../abi/TimeMachine.json'
+
 import castilloImg from '../assets/castillo.png';
 import cofreImg from '../assets/cofre.png';
 import pastoImg from '../assets/grass.png';
@@ -30,10 +38,46 @@ interface Character {
 const tileWidth = 64;
 const tileHeight = 32;
 
+
+
+
+
+
+
+
+
 const MapCanvasIsometric: React.FC = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [game, setGame] = useState<Phaser.Game | null>(null);
 
+
+  const { 
+    data: hash,
+    error,
+    isPending, 
+    writeContract 
+  } = useWriteContract() 
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) { 
+    e.preventDefault() 
+    const formData = new FormData(e.target as HTMLFormElement) 
+    // Obtiene los valores de affinity y velocity desde el formulario
+    const characterId = formData.get('characterId') as string 
+    const blockId = formData.get('blockId') as string 
+    writeContract({
+      address: '0x322AE0BEE905572DE3d1F67E2A560c19fbc76994',
+      abi,
+      functionName: 'conquest',
+      args: [BigInt(characterId), BigInt(blockId),true],
+    })
+  } 
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = 
+    useWaitForTransactionReceipt({ 
+      hash, 
+    }) 
+
+    
   useEffect(() => {
     if (!gameContainerRef.current) return;
 
