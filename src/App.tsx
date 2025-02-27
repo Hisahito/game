@@ -9,6 +9,7 @@ import CharacterEventListener from './components/WebsocketCharacter';
 import HistoricalCharacterEvents from './components/Character';
 import CharacterAlchemyEventListener from './components/AlchemySocket';
 import TransferEventsListener from './components/AlchemySocket';
+import MapCanvas2 from './components/World2';
 
 /**
  * Componente principal de la aplicación.
@@ -24,10 +25,12 @@ const App: React.FC = () => {
       </header>
       <ConnectButton />
       <CreateCharacter/>
-      <TransferEventsListener/>
-      
       <HistoricalCharacterEvents/>
-      <MapCanvasIsometric/>
+
+
+      
+      
+      <MapCanvas2/>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 
 import castilloImg from '../assets/castillo.png';
 import cofreImg from '../assets/cofre.png';
-import pastoImg from '../assets/grass.png';
+import pastoImg from '../assets/pasto3.png';
 import aguaImg from '../assets/water.png';
 import bosqueImg from '../assets/bosque.png';
 import piedraImg from '../assets/piedra1.png';
@@ -30,7 +30,7 @@ interface Character {
 const tileWidth = 64;
 const tileHeight = 32;
 
-const MapCanvasIsometric: React.FC = () => {
+const MapCanvas2: React.FC = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [game, setGame] = useState<Phaser.Game | null>(null);
 
@@ -58,7 +58,7 @@ const MapCanvasIsometric: React.FC = () => {
         this.load.image('woods', woodsImg);
 
         // Cargar el JSON del mapa y de personajes
-        this.load.json('world', 'World.json');
+        this.load.json('world', 'Canonical.json');
         this.load.json('characters', 'Characters.json');
 
         // Cargar el sprite sheet del personaje (6 frames de 100x100)
@@ -125,12 +125,15 @@ const MapCanvasIsometric: React.FC = () => {
           const isoY = (x + y) * (tileHeight * spacingFactorY);
 
           let texture = 'pasto';
-          if (category === 'Legendary') texture = 'castillo';
-          if (category === 'High') texture = 'torre';
-          if (category === 'Medium') texture = 'agua';
-          if (only === 1) texture = 'agua';
-          if (only === 3) texture = 'woods';
-          if (only === 6) texture = 'woods';
+          if (category === 'Special Cluster 1') texture = 'agua';
+          if (category === 'Special Cluster 2') texture = 'piedra';
+          if (category === 'Special Cluster 3') texture = 'pasto';
+          if (category === 'Special Cluster 4') texture = 'pasto';
+          if (category === 'Special Cluster 5') texture = 'castillo';
+          if (only === 1) texture = 'woods';
+          if (only === 3) texture = 'agua';
+          if (only === 6) texture = 'agua';
+          if (only === 8) texture = 'castillo';
 
           const sprite = this.add.sprite(isoX, isoY, texture).setOrigin(0.5, 1);
           // Guardamos el blockId en el sprite para usarlo después
@@ -276,6 +279,4 @@ const MapCanvasIsometric: React.FC = () => {
   return <div ref={gameContainerRef} />;
 };
 
-export default MapCanvasIsometric;
-
-
+export default MapCanvas2;

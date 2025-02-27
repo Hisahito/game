@@ -11,9 +11,7 @@ interface CharacterCreatedEvent {
 
 
 // Definimos el evento usando parseAbiItem
-const eventItem = parseAbi([
-    'event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)']
-  )
+const eventItem = parseAbi(['event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)'])
 
   const eventItem2= parseAbiItem(
     'event CharacterCreated(uint256 characterId, uint256 affinity, uint256 velocity)'
@@ -31,16 +29,19 @@ const HistoricalCharacterEvents = () => {
     async function fetchEvents() {
       try {
         const logs = await publicClient.getLogs({
-          address: '0xDF72cf0Ec03d30c3Ce2E409A4c3045F89278B7C7',
-          fromBlock: 82450941n,
+          address: '0x322AE0BEE905572DE3d1F67E2A560c19fbc76994',
+          events: eventItem,
+          fromBlock: 48628746n,
           toBlock: 'latest',
         })
-
+console.log(logs);
+console.log(eventItem);
         const eventsData: CharacterCreatedEvent[] = logs.map((log) => {
           const decoded = decodeEventLog({
             abi: eventItem,
             data: log.data,
             topics: log.topics,
+            
           })
           return {
             characterId: decoded.args.characterId.toString(),
@@ -60,7 +61,7 @@ const HistoricalCharacterEvents = () => {
   // Suscripción a nuevos eventos
   useEffect(() => {
     const unwatch = publicClient.watchEvent({
-      address: '0xDF72cf0Ec03d30c3Ce2E409A4c3045F89278B7C7',
+      address: '0x322AE0BEE905572DE3d1F67E2A560c19fbc76994',
       event: eventItem2,
       onLogs: (logs) => {
         logs.forEach((log) => {

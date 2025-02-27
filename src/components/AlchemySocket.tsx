@@ -25,7 +25,7 @@ const TransferEventsListener: React.FC = () => {
     // La dirección "dai.tokens.ethers.eth" es un ENS que resuelve a la dirección de DAI.
     // Se usa la firma del evento Transfer para generar el topic.
     const filter = {
-      address: '0xDF72cf0Ec03d30c3Ce2E409A4c3045F89278B7C7',
+      address: '0x322AE0BEE905572DE3d1F67E2A560c19fbc76994',
       topics: [Utils.id("CharacterCreated(uint256,uint256,uint256)")],
     };
 
