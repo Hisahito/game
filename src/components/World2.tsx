@@ -5,13 +5,17 @@ import abi from '../abi/TimeMachine.json';
 
 import castilloImg from '../assets/castillo.png';
 import cofreImg from '../assets/cofre.png';
-import pastoImg from '../assets/pasto3.png';
+import grassImg from '../assets/pasto3.png';
 import aguaImg from '../assets/water.png';
 import bosqueImg from '../assets/bosque.png';
 import piedraImg from '../assets/piedra1.png';
 import woodsImg from '../assets/blockWoods.png';
 import soldierIdle from '../assets/Soldier-Idle.png'; // Sprite del personaje
 import rockImg from '../assets/BlockRock1.png';
+import nightImg from '../assets/NightBlock1.png';
+import chestImg from '../assets/GrassChest.png';
+import grass2Img from '../assets/Grass2.png';
+import grass3Img from '../assets/Grass3.png';
 
 interface Block {
   blockId: number;
@@ -71,7 +75,7 @@ const MapCanvas2: React.FC = () => {
   }, []);
 
 
-  
+
 
   useEffect(() => {
     if (!gameContainerRef.current) return;
@@ -89,12 +93,16 @@ const MapCanvas2: React.FC = () => {
       preload() {
         this.load.image('castillo', castilloImg);
         this.load.image('cofre', bosqueImg);
-        this.load.image('torre', pastoImg);
-        this.load.image('pasto', pastoImg);
+        this.load.image('torre', grassImg);
+        this.load.image('pasto', grassImg);
+        this.load.image('grass2', grass2Img);
+        this.load.image('grass3', grass3Img);
+        this.load.image('ngrass', nightImg);
         this.load.image('agua', aguaImg);
         this.load.image('bosque', woodsImg);
         this.load.image('piedra', rockImg);
         this.load.image('woods', woodsImg);
+        this.load.image('gchest', chestImg);
 
         // Cargar el JSON del mapa y de personajes
         this.load.json('world', 'Canonical.json');
@@ -154,6 +162,28 @@ const MapCanvas2: React.FC = () => {
       }
 
       renderBlocks() {
+
+
+        // Definición de texturas default y sus probabilidades
+  const defaultTextures = [
+    { key: 'pasto', probability: 0.7 },
+    { key: 'grass2', probability: 0.2 },
+    { key: 'grass3', probability: 0.1 },
+  ];
+
+  function getRandomTexture(textures) {
+    const totalProbability = textures.reduce((acc, curr) => acc + curr.probability, 0);
+    const random = Math.random() * totalProbability;
+    let sum = 0;
+    for (let texture of textures) {
+      sum += texture.probability;
+      if (random < sum) {
+        return texture.key;
+      }
+    }
+    return textures[0].key; // fallback
+  }
+
         const container = this.add.container();
         const spacingFactorX = 0.3;
         const spacingFactorY = 0.3;
@@ -163,16 +193,23 @@ const MapCanvas2: React.FC = () => {
           const isoX = (x - y) * (tileWidth * spacingFactorX);
           const isoY = (x + y) * (tileHeight * spacingFactorY);
 
-          let texture = 'pasto';
+          let texture = null;
           if (category === 'Special Cluster 1') texture = 'agua';
           if (category === 'Special Cluster 2') texture = 'piedra';
-          if (category === 'Special Cluster 3') texture = 'pasto';
+          if (category === 'Special Cluster 3') texture = 'gchest';
           if (category === 'Special Cluster 4') texture = 'pasto';
           if (category === 'Special Cluster 5') texture = 'castillo';
           if (only === 1) texture = 'woods';
           if (only === 3) texture = 'agua';
           if (only === 6) texture = 'agua';
           if (only === 8) texture = 'castillo';
+
+
+          // Si ninguna condición especial se cumple, asignar una textura default aleatoria
+    if (!texture) {
+      texture = getRandomTexture(defaultTextures);
+    }
+
 
           const sprite = this.add.sprite(isoX, isoY, texture).setOrigin(0.5, 1);
           // Guardamos el blockId en el sprite para usarlo después
